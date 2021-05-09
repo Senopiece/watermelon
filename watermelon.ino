@@ -3,9 +3,9 @@
 #include "datastructures.h"
 
 
-#define rele_count 8
-#define rele_shedule_capacity 16
-TimeInterval shedule[rele_count][rele_shedule_capacity];
+#define relay_count 8
+#define relay_shedule_capacity 16
+TimeInterval shedule[relay_count][relay_shedule_capacity];
 
 
 TimePoint parce_time(String str)
@@ -28,10 +28,10 @@ void put_time_interval(String str)
     return;
   }
 
-  int rele_index = str.substring(sepa + 2).toInt() - 1;
-  if (!((rele_index >= 0) && (rele_index < rele_count)))
+  int relay_index = str.substring(sepa + 2).toInt() - 1;
+  if (!((relay_index >= 0) && (relay_index < relay_count)))
   {
-    Serial.println("invalid rele index");
+    Serial.println("invalid relay index");
     return;
   }
   
@@ -53,29 +53,29 @@ void put_time_interval(String str)
   }
 
   int i;
-  auto& rele_shedule = shedule[rele_index];
+  auto& relay_shedule = shedule[relay_index];
   
-  if (rele_shedule[15].is_correct())
+  if (relay_shedule[15].is_correct())
   {
-    Serial.println("shedule for this rele is already owerflowed");
+    Serial.println("shedule for this relay is already owerflowed");
     return;
   }
   
-  for (i = 0; i < rele_shedule_capacity; i++)
+  for (i = 0; i < relay_shedule_capacity; i++)
   {
-    if ((!rele_shedule[i].is_correct()) || (rele_shedule[i].from.timestamp() >= interval.to.timestamp()))
+    if ((!relay_shedule[i].is_correct()) || (relay_shedule[i].from.timestamp() >= interval.to.timestamp()))
       break;
   }
 
-  if ((i > 0) && (rele_shedule[i-1].to.timestamp() > interval.from.timestamp()))
+  if ((i > 0) && (relay_shedule[i-1].to.timestamp() > interval.from.timestamp()))
   {
     Serial.println("this time interval intersects with one another");
     return;
   }
 
   for (int j = 15; j > i; j--)
-    rele_shedule[j] = rele_shedule[j-1];
-  rele_shedule[i] = interval;
+    relay_shedule[j] = relay_shedule[j-1];
+  relay_shedule[i] = interval;
   
   EEPROM.put(0, shedule);
 }
@@ -90,10 +90,10 @@ void pull_time_interval(String str)
     return;
   }
 
-  int rele_index = str.substring(sepa + 4).toInt() - 1;
-  if (!((rele_index >= 0) && (rele_index <= 7)))
+  int relay_index = str.substring(sepa + 4).toInt() - 1;
+  if (!((relay_index >= 0) && (relay_index <= 7)))
   {
-    Serial.println("invalid rele index");
+    Serial.println("invalid relay index");
     return;
   }
 
@@ -114,14 +114,14 @@ void pull_time_interval(String str)
     return;
   }
 
-  auto& rele_shedule = shedule[rele_index];
-  for (int i = 0; i < rele_shedule_capacity; i++)
+  auto& relay_shedule = shedule[relay_index];
+  for (int i = 0; i < relay_shedule_capacity; i++)
   {
-    if (rele_shedule[i] == interval)
+    if (relay_shedule[i] == interval)
     {
-      for (int j = i; j < rele_shedule_capacity - 1; j++)
-          rele_shedule[j] = rele_shedule[j+1];
-      rele_shedule[rele_shedule_capacity - 1] = TimeInterval();
+      for (int j = i; j < relay_shedule_capacity - 1; j++)
+          relay_shedule[j] = relay_shedule[j+1];
+      relay_shedule[relay_shedule_capacity - 1] = TimeInterval();
       break;
     }
   }
@@ -138,7 +138,7 @@ void setup()
   // terminal
   Serial.begin(9600);
 
-  // rele
+  // relay
   for (int i = 2; i < 10; i++)
   {
     pinMode(i, OUTPUT);
@@ -189,11 +189,11 @@ void loop()
 
   if (cmd.startsWith("get shedule")) // >> get shedule
   {
-    for (int i = 0; i < rele_count; i++)
+    for (int i = 0; i < relay_count; i++)
     {
       Serial.print(i + 1);
       Serial.print(": ");
-      for (int j = 0; j < rele_shedule_capacity; j++)
+      for (int j = 0; j < relay_shedule_capacity; j++)
       {
         if (!shedule[i][j].is_correct())
           break;
@@ -288,11 +288,11 @@ void loop()
   }
 
   int curr_timestamp = (hour() * 60) + minute();
-  for (int i = 0; i < rele_count; i++)
+  for (int i = 0; i < relay_count; i++)
   {
-    int rele_pin = i + 2;
+    int relay_pin = i + 2;
     bool is_active = false;
-    for (int j = 0; j < rele_shedule_capacity; j++)
+    for (int j = 0; j < relay_shedule_capacity; j++)
     {
       if (!shedule[i][j].is_correct())
         break;
@@ -301,6 +301,6 @@ void loop()
       if (is_active)
         break;
     }
-    digitalWrite(rele_pin, is_active ? LOW : HIGH);
+    digitalWrite(relay_pin, is_active ? LOW : HIGH);
   }
 }
