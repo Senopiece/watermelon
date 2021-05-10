@@ -139,7 +139,7 @@ void setup()
   Serial.begin(9600);
 
   // relay
-  for (int i = 2; i < 10; i++)
+  for (int i = 2; i < relay_count + 2; i++)
   {
     pinMode(i, OUTPUT);
     digitalWrite(i, HIGH);
@@ -155,7 +155,7 @@ void loop()
   String cmd = Serial.readStringUntil('\n');
   if (cmd.startsWith("manual mode")) // >> manual mode
   {
-    for (int i = 2; i < 10; i++)
+    for (int i = 2; i < relay_count + 2; i++)
       digitalWrite(i, HIGH);
     
     while (true)
@@ -292,7 +292,7 @@ void loop()
 
   if (digitalRead(10)) // if it's rainy
   {
-    for (int i = 2; i < 10; i++)
+    for (int i = 2; i < relay_count + 2; i++)
       digitalWrite(i, HIGH);
   }
   else
