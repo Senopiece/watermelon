@@ -144,6 +144,9 @@ void setup()
     pinMode(i, OUTPUT);
     digitalWrite(i, HIGH);
   }
+
+  // rain detector
+  pinMode(10, INPUT);
 }
 
 
@@ -287,20 +290,28 @@ void loop()
     Serial.print('\n');
   }
 
-  int curr_timestamp = (hour() * 60) + minute();
-  for (int i = 0; i < relay_count; i++)
+  if (digitalRead(10)) // if it's rainy
   {
-    int relay_pin = i + 2;
-    bool is_active = false;
-    for (int j = 0; j < relay_shedule_capacity; j++)
+    for (int i = 2; i < 10; i++)
+      digitalWrite(i, HIGH);
+  }
+  else
+  {
+    int curr_timestamp = (hour() * 60) + minute();
+    for (int i = 0; i < relay_count; i++)
     {
-      if (!shedule[i][j].is_correct())
-        break;
+      int relay_pin = i + 2;
+      bool is_active = false;
+      for (int j = 0; j < relay_shedule_capacity; j++)
+      {
+        if (!shedule[i][j].is_correct())
+          break;
 
-      is_active = (shedule[i][j].from.timestamp() <= curr_timestamp) && (shedule[i][j].to.timestamp() >= curr_timestamp);
-      if (is_active)
-        break;
+        is_active = (shedule[i][j].from.timestamp() <= curr_timestamp) && (shedule[i][j].to.timestamp() >= curr_timestamp);
+        if (is_active)
+          break;
+      }
+      digitalWrite(relay_pin, is_active ? LOW : HIGH);
     }
-    digitalWrite(relay_pin, is_active ? LOW : HIGH);
   }
 }
