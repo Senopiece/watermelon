@@ -1,9 +1,9 @@
 #include <EEPROM.h>
-#include <DS1307RTC.h>
 #include "datastructures.h"
+#include "mock_time.h"
 
 
-#define relay_count 8
+#define relay_count 3
 #define relay_shedule_capacity 16
 TimeInterval shedule[relay_count][relay_shedule_capacity];
 
@@ -235,13 +235,6 @@ void loop()
   if (cmd.startsWith("pull")) // >> pull 1:00 - 2:00 from 1
     pull_time_interval(cmd.substring(5));
 
-  setSyncProvider(RTC.get);
-  if(timeStatus() != timeSet) 
-  {
-    Serial.println("Error: clock not found");
-    return;
-  }
-
   if (cmd.startsWith("set time to")) // >> set time to 11:00
   {
     int sepa;
@@ -267,7 +260,6 @@ void loop()
     }
     
     setTime(hours,minutes,seconds, 1,1,1971);
-    RTC.set(now());
   }
 
   if (cmd.startsWith("get time")) // >> get time

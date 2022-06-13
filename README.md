@@ -1,8 +1,8 @@
 # watermelon
-automatic irrigation on arduino
+`mock` automatic irrigation on arduino
 
 # quick hardware overview
-it needs to be connected with 8 relays on pins 2-9, `DS3231` clock module and `HC-06` bluetooth module
+it needs only `HC-06` bluetooth module as it's just a mock prototype.
 
 # quick cmd overview
 ```get time
