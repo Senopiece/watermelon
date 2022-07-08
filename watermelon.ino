@@ -233,7 +233,7 @@ void loop()
         }
         while (sepa != -1);
         Serial.print("\n");
-      } else {
+      } else if (cmd != "") {
         printUnknownCommand();
       }
     }
@@ -335,7 +335,7 @@ void loop()
   {
     Serial.println("aleph-1.1.0");
   }
-  else {
+  else if (cmd != "") {
     printUnknownCommand();
   }
 
