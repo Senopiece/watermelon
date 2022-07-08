@@ -190,7 +190,7 @@ void loop()
     }
   }
 
-  if (cmd.startsWith("get shedule")) // >> get shedule
+  if (cmd.startsWith("get schedule")) // >> get schedule
   {
     for (int i = 0; i < relay_count; i++)
     {
