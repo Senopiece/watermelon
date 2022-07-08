@@ -6,7 +6,7 @@ public:
 
   TimePoint()
   {
-    hours = 0;
+    hours = 100;
     minutes = 0;
   }
 

@@ -4,9 +4,10 @@
 
 
 #define relay_count 3
-#define relay_shedule_capacity 16
-TimeInterval shedule[relay_count][relay_shedule_capacity];
+#define relay_schedule_capacity 16
+TimeInterval schedule[relay_count][relay_schedule_capacity];
 
+const String version = "aleph-1.1.1";
 
 TimePoint parse_time(String str)
 {
@@ -64,31 +65,31 @@ void put_time_interval(String str)
   }
 
   int i;
-  auto& relay_shedule = shedule[relay_index];
+  auto& relay_schedule = schedule[relay_index];
   
-  if (relay_shedule[15].is_correct())
+  for (i = 0; i < relay_schedule_capacity; i++)
+  {
+    if ((!relay_schedule[i].is_correct()) || (relay_schedule[i].from.timestamp() > interval.to.timestamp()))
+      break;
+  }
+
+  if (i == 16)
   {
     printErr("schedule for this relay is already overflowed");
     return;
   }
-  
-  for (i = 0; i < relay_shedule_capacity; i++)
-  {
-    if ((!relay_shedule[i].is_correct()) || (relay_shedule[i].from.timestamp() > interval.to.timestamp()))
-      break;
-  }
 
-  if ((i > 0) && (relay_shedule[i-1].to.timestamp() >= interval.from.timestamp()))
+  if ((i > 0) && (relay_schedule[i-1].to.timestamp() >= interval.from.timestamp()))
   {
     printErr("this time interval intersects with one another");
     return;
   }
 
   for (int j = 15; j > i; j--)
-    relay_shedule[j] = relay_shedule[j-1];
-  relay_shedule[i] = interval;
+    relay_schedule[j] = relay_schedule[j-1];
+  relay_schedule[i] = interval;
   
-  EEPROM.put(0, shedule);
+  EEPROM.put(0, schedule);
   printOk(); // put
 }
 
@@ -126,19 +127,19 @@ void pull_time_interval(String str)
     return;
   }
 
-  auto& relay_shedule = shedule[relay_index];
-  for (int i = 0; i < relay_shedule_capacity; i++)
+  auto& relay_schedule = schedule[relay_index];
+  for (int i = 0; i < relay_schedule_capacity; i++)
   {
-    if (relay_shedule[i] == interval)
+    if (relay_schedule[i] == interval)
     {
-      for (int j = i; j < relay_shedule_capacity - 1; j++)
-          relay_shedule[j] = relay_shedule[j+1];
-      relay_shedule[relay_shedule_capacity - 1] = TimeInterval();
+      for (int j = i; j < relay_schedule_capacity - 1; j++)
+          relay_schedule[j] = relay_schedule[j+1];
+      relay_schedule[relay_schedule_capacity - 1] = TimeInterval();
       break;
     }
   }
 
-  EEPROM.put(0, shedule);
+  EEPROM.put(0, schedule);
   printOk(); // pull
 }
 
@@ -146,7 +147,7 @@ void pull_time_interval(String str)
 void setup()
 {
   // read saved
-  EEPROM.get(0, shedule);
+  EEPROM.get(0, schedule);
   
   // terminal
   Serial.begin(9600);
@@ -233,7 +234,12 @@ void loop()
         }
         while (sepa != -1);
         Serial.print("\n");
-      } else if (cmd != "") {
+      }
+      else if (cmd.startsWith("get version")) // >> get version
+      {
+        Serial.println(version);
+      }
+      else if (cmd != "") {
         printUnknownCommand();
       }
     }
@@ -244,13 +250,13 @@ void loop()
     {
       Serial.print(i + 1);
       Serial.print(": ");
-      for (int j = 0; j < relay_shedule_capacity; j++)
+      for (int j = 0; j < relay_schedule_capacity; j++)
       {
-        if (!shedule[i][j].is_correct())
+        if (!schedule[i][j].is_correct())
           break;
         else
         {
-          TimeInterval intrvl = shedule[i][j];
+          TimeInterval intrvl = schedule[i][j];
           
           Serial.print(intrvl.from.hours);
           Serial.print(":");
@@ -268,7 +274,7 @@ void loop()
 
           if (j < 15)
           {
-            if (shedule[i][j+1].is_correct())
+            if (schedule[i][j+1].is_correct())
               Serial.print(", ");
           }       
         }
@@ -333,7 +339,7 @@ void loop()
   }
   else if (cmd.startsWith("get version")) // >> get version
   {
-    Serial.println("aleph-1.1.1");
+    Serial.println(version);
   }
   else if (cmd != "") {
     printUnknownCommand();
@@ -351,12 +357,12 @@ void loop()
     {
       int relay_pin = i + 2;
       bool is_active = false;
-      for (int j = 0; j < relay_shedule_capacity; j++)
+      for (int j = 0; j < relay_schedule_capacity; j++)
       {
-        if (!shedule[i][j].is_correct())
+        if (!schedule[i][j].is_correct())
           break;
 
-        is_active = (shedule[i][j].from.timestamp() <= curr_timestamp) && (shedule[i][j].to.timestamp() >= curr_timestamp);
+        is_active = (schedule[i][j].from.timestamp() <= curr_timestamp) && (schedule[i][j].to.timestamp() >= curr_timestamp);
         if (is_active)
           break;
       }
