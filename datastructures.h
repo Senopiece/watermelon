@@ -35,7 +35,7 @@ public:
 
   bool is_correct()
   {
-    return from.is_correct() && to.is_correct() && to.timestamp() > from.timestamp();
+    return from.is_correct() && to.is_correct() && to.timestamp() >= from.timestamp();
   }
 
   friend bool operator==(const TimeInterval& left, const TimeInterval& right)
