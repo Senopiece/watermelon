@@ -333,7 +333,7 @@ void loop()
   }
   else if (cmd.startsWith("get version")) // >> get version
   {
-    Serial.println("aleph-1.1.0");
+    Serial.println("aleph-1.1.1");
   }
   else if (cmd != "") {
     printUnknownCommand();
