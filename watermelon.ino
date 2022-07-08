@@ -18,20 +18,31 @@ TimePoint parce_time(String str)
   return res;
 }
 
+void printOk() {
+  Serial.println("ok");
+}
+
+void printUnknownCommand() {
+  printErr("unknown command");
+}
+
+void printErr(String content) {
+  Serial.println("err: " + content);
+}
 
 void put_time_interval(String str)
 {
   int sepa = str.indexOf("to");
   if (sepa == -1)
   {
-    Serial.println("cannot find a `to` keyword");
+    printErr("cannot find a `to` keyword");
     return;
   }
 
   int relay_index = str.substring(sepa + 2).toInt() - 1;
   if (!((relay_index >= 0) && (relay_index < relay_count)))
   {
-    Serial.println("invalid relay index");
+    printErr("invalid relay index");
     return;
   }
   
@@ -40,7 +51,7 @@ void put_time_interval(String str)
   sepa = str.indexOf("-");
   if (sepa == -1)
   {
-    Serial.println("cannot find `-` to split time interval parts");
+    printErr("cannot find `-` to split time interval parts");
     return;
   }
   interval.from = parce_time(str.substring(0, sepa));
@@ -48,7 +59,7 @@ void put_time_interval(String str)
   
   if (!interval.is_correct())
   {
-    Serial.println("time interval is incorrect");
+    printErr("time interval is incorrect");
     return;
   }
 
@@ -57,7 +68,7 @@ void put_time_interval(String str)
   
   if (relay_shedule[15].is_correct())
   {
-    Serial.println("shedule for this relay is already owerflowed");
+    printErr("schedule for this relay is already overflowed");
     return;
   }
   
@@ -69,7 +80,7 @@ void put_time_interval(String str)
 
   if ((i > 0) && (relay_shedule[i-1].to.timestamp() > interval.from.timestamp()))
   {
-    Serial.println("this time interval intersects with one another");
+    printErr("this time interval intersects with one another");
     return;
   }
 
@@ -78,6 +89,7 @@ void put_time_interval(String str)
   relay_shedule[i] = interval;
   
   EEPROM.put(0, shedule);
+  printOk(); // put
 }
 
 
@@ -86,14 +98,14 @@ void pull_time_interval(String str)
   int sepa = str.indexOf("from");
   if (sepa == -1)
   {
-    Serial.println("cannot find a `from` keyword");
+    printErr("cannot find a `from` keyword");
     return;
   }
 
   int relay_index = str.substring(sepa + 4).toInt() - 1;
   if (!((relay_index >= 0) && (relay_index <= 7)))
   {
-    Serial.println("invalid relay index");
+    printErr("invalid relay index");
     return;
   }
 
@@ -102,7 +114,7 @@ void pull_time_interval(String str)
   sepa = str.indexOf("-");
   if (sepa == -1)
   {
-    Serial.println("cannot find `-` to split time interval parts");
+    printErr("cannot find `-` to split time interval parts");
     return;
   }
   interval.from = parce_time(str.substring(0, sepa));
@@ -110,7 +122,7 @@ void pull_time_interval(String str)
   
   if (!interval.is_correct())
   {
-    Serial.println("time interval is incorrect");
+    printErr("time interval is incorrect");
     return;
   }
 
@@ -127,6 +139,7 @@ void pull_time_interval(String str)
   }
 
   EEPROM.put(0, shedule);
+  printOk(); // pull
 }
 
 
@@ -157,40 +170,75 @@ void loop()
   {
     for (int i = 2; i < relay_count + 2; i++)
       digitalWrite(i, HIGH);
-    
+    printOk(); // enter manual mode
+
     while (true)
     {
       cmd = Serial.readStringUntil('\n');
       if (cmd.startsWith("exit manual mode")) // >> exit manual mode
+      {
+        printOk(); // exit manual mode
         break;
+      }
       else if (cmd.startsWith("open")) // >> open 1, 2, 3
       {
         cmd = cmd.substring(4);
         int sepa;
+        
+        Serial.print("recognized ");
+        bool first = true;
+
         do
         {
-          digitalWrite(cmd.toInt() + 1, LOW);
+          long index = cmd.toInt();
+          if ((index > 0) && (index <= relay_count))
+          {
+            digitalWrite(index + 1, LOW);
+            if (first) {
+              first = false;
+            } else {
+              Serial.print(", ");
+            }
+            Serial.print(String(index, DEC));
+          }
           sepa = cmd.indexOf(",");
           cmd = cmd.substring(sepa + 1);
         }
         while (sepa != -1);
+        Serial.print("\n");
       }
       else if (cmd.startsWith("close")) // >> close 1, 2, 3
       {
         cmd = cmd.substring(5);
         int sepa;
+
+        Serial.print("recognized ");
+        bool first = true;
+
         do
         {
-          digitalWrite(cmd.toInt() + 1, HIGH);
+          long index = cmd.toInt();
+          if ((index > 0) && (index <= relay_count))
+          {
+            digitalWrite(index + 1, HIGH);
+            if (first) {
+              first = false;
+            } else {
+              Serial.print(", ");
+            }
+            Serial.print(String(index, DEC));
+          }
           sepa = cmd.indexOf(",");
           cmd = cmd.substring(sepa + 1);
         }
         while (sepa != -1);
+        Serial.print("\n");
+      } else {
+        printUnknownCommand();
       }
     }
   }
-
-  if (cmd.startsWith("get schedule")) // >> get schedule
+  else if (cmd.startsWith("get schedule")) // >> get schedule
   {
     for (int i = 0; i < relay_count; i++)
     {
@@ -225,17 +273,19 @@ void loop()
           }       
         }
       }
-      Serial.print('\n');
+      if (i != relay_count - 1) Serial.print(";");
     }
+    Serial.print("\n");
   }
-
-  if (cmd.startsWith("put")) // >> put 1:00 - 2:00 to 1
+  else if (cmd.startsWith("put")) // >> put 1:00 - 2:00 to 1
+  {
     put_time_interval(cmd.substring(4));
-
-  if (cmd.startsWith("pull")) // >> pull 1:00 - 2:00 from 1
+  }
+  else if (cmd.startsWith("pull")) // >> pull 1:00 - 2:00 from 1
+  {
     pull_time_interval(cmd.substring(5));
-
-  if (cmd.startsWith("set time to")) // >> set time to 11:00
+  }
+  else if (cmd.startsWith("set time to")) // >> set time to 11:00
   {
     int sepa;
     int hours = 0;
@@ -260,9 +310,9 @@ void loop()
     }
     
     setTime(hours,minutes,seconds, 1,1,1971);
+    printOk();
   }
-
-  if (cmd.startsWith("get time")) // >> get time
+  else if (cmd.startsWith("get time")) // >> get time
   {
     Serial.print(hour());
     Serial.print(":");
@@ -280,6 +330,9 @@ void loop()
       Serial.print(seconds);
     }
     Serial.print('\n');
+  }
+  else {
+    printUnknownCommand();
   }
 
   if (digitalRead(10)) // if it's rainy
