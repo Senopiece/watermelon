@@ -117,8 +117,8 @@ void pull_time_interval(String str)
     printErr("cannot find `-` to split time interval parts");
     return;
   }
-  interval.from = parce_time(str.substring(0, sepa));
-  interval.to   = parce_time(str.substring(sepa + 1));
+  interval.from = parse_time(str.substring(0, sepa));
+  interval.to   = parse_time(str.substring(sepa + 1));
   
   if (!interval.is_correct())
   {
