@@ -74,11 +74,11 @@ void put_time_interval(String str)
   
   for (i = 0; i < relay_shedule_capacity; i++)
   {
-    if ((!relay_shedule[i].is_correct()) || (relay_shedule[i].from.timestamp() >= interval.to.timestamp()))
+    if ((!relay_shedule[i].is_correct()) || (relay_shedule[i].from.timestamp() > interval.to.timestamp()))
       break;
   }
 
-  if ((i > 0) && (relay_shedule[i-1].to.timestamp() > interval.from.timestamp()))
+  if ((i > 0) && (relay_shedule[i-1].to.timestamp() >= interval.from.timestamp()))
   {
     printErr("this time interval intersects with one another");
     return;
