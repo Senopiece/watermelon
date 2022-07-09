@@ -5,7 +5,7 @@
 it needs only `HC-06` bluetooth module as it's just a mock prototype.
 
 # quick cmd overview
-- get shedule > `1: 12:00 - 13:00;2: 12:00 - 13:00\n`
+- get shedule > `1: 12:00 - 13:00;2: 12:00 - 13:00`
 - get time > `12:00:13`
 - set time to 1:00:00 > `ok`
 - put 1:00 - 2:00 to 1 > `ok`
