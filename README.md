@@ -14,4 +14,4 @@ it needs only `HC-06` bluetooth module as it's just a mock prototype.
 - (in manual mode) open 1,2,3 > `recognized 1, 2, 3`
 - (in manual mode) close 1,2,3 > `recognized 1, 2, 3`
 - exit manual mode > `ok`
-- get version > `aleph-1.1.0`
+- get version > `aleph-x.x.x`
