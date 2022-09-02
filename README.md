@@ -20,10 +20,10 @@ exit manual mode
 ## versioning
 
 backend:
-x.x.x~hardware+comment
+x.x.x~hardware+comment#patch
 
 frontend:
-x.x.x~hardware+comment
+x.x.x~hardware+comment#patch
 
 module:
-x.x.x~hardware+comment
+x.x.x~hardware+comment#patch
