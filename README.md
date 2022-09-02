@@ -15,3 +15,15 @@ manual mode
 (in manual mode) open 1,2,3
 (in manual mode) close 1,2,3
 exit manual mode
+
+
+## versioning
+
+backend:
+x.x.x~hardware+comment
+
+frontend:
+x.x.x~hardware+comment
+
+module:
+x.x.x~hardware+comment
